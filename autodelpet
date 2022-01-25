@@ -1,0 +1,59 @@
+local Remote_ = workspace.__THINGS.__REMOTES["delete several pets"];
+local Library = nil;
+
+_G.Enabled = true;
+_G.Settings = {MinimumStats = "6.63k"};
+-- ^ deletes pets with stats under this value
+-- scripted by RebirthTestAcc. Do not re-release without credit
+
+coroutine.wrap(function()
+   Library = require(game.ReplicatedStorage:WaitForChild("Framework"):WaitForChild("Library"));
+end)();
+
+-- [1]
+local PlayerData = Library.Save.Get(Library.LocalPlayer);
+local Pets = PlayerData.Pets;
+local UI = game:GetService("Players").LocalPlayer.PlayerGui.Inventory.Frame.Main.Pets;
+
+local suffixes = {'k','m'};
+
+local function reverseString(str)
+   if not (str and type(str) == 'string') then
+       error('invalid parameters.\nP1 - string: string', 2)
+   end
+   local totalMagnitude = 1
+   for key, suffix in pairs(suffixes) do
+       str = string.gsub(str, suffix, function()
+           totalMagnitude = totalMagnitude * (10 ^ (key * 3))
+           return ''
+       end)
+   end
+   if not tonumber(str) then
+       error('invalid parameter #1: Expected a string which could be converted to a number, got "'..str..'"', 2)
+   end
+   return totalMagnitude * str
+end
+
+function GetPetInfo(uid_)
+   for i,v in pairs(Pets) do
+       if v.uid == uid_ then
+           return v.nk;
+       end    
+   end    
+end    
+
+UI.ChildAdded:Connect(function(littlekid)
+   if _G.Enabled == true then
+       local PetStat = littlekid:FindFirstChild("Level");
+       if PetStat then
+           PetStat = tostring(PetStat.Text);
+           if type(PetStat) == "string" then
+               if reverseString(PetStat) < reverseString(_G.Settings.MinimumStats) then
+                   print("aww rip")
+                   Remote_:InvokeServer({{tostring(littlekid.Name)}});
+                   print(string.format("a %s pet deleted from your inventory!", PetStat));
+               end    
+           end    
+       end  
+   end    
+end)
